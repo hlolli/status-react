@@ -9,7 +9,9 @@
       (update :tags #(into #{} %))))
 
 (defn- serialize-contact [contact]
-  (update contact :device-info #(or (vals %) [])))
+  (-> contact
+      (dissoc :command :response :subscriptions :contact-code)
+      (update :device-info #(or (vals %) []))))
 
 (re-frame/reg-cofx
  :data-store/get-all-contacts

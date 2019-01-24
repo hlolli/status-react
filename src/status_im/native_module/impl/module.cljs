@@ -135,6 +135,10 @@
   (when status
     (.disableInstallation status installation-id callback)))
 
+(defn get-contact-code [public-key callback]
+  (when status
+    (call-module #(.getContactCode status public-key callback))))
+
 (defn is24Hour []
   (when status
     (.-is24Hour status)))

@@ -17,6 +17,7 @@
             [status-im.chat.models.message :as chat.message]
             [status-im.contact.core :as contact]
             [status-im.contact-recovery.core :as contact-recovery]
+            [status-im.contact-code.core :as contact-code]
             [status-im.data-store.core :as data-store]
             [status-im.extensions.core :as extensions]
             [status-im.extensions.registry :as extensions.registry]
@@ -1614,6 +1615,13 @@
  :contact-code.callback/contact-code-publishing-failed
  (fn [cofx _]
    (contact-code/publishing-failed cofx)))
+
+(handlers/register-handler-fx
+ :contact-code.callback/contact-code-loaded
+ (fn [cofx [_ public-key contact-code]]
+   (fx/merge
+    cofx
+    (contact-code/loaded cofx public-key contact-code))))
 
 (handlers/register-handler-fx
  :pairing.ui/enable-installation-pressed

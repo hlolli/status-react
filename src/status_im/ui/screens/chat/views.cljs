@@ -151,9 +151,10 @@
      [decline-chat chat-id]]]])
 
 (defview messages-view
-  [{:keys [group-chat name pending-invite-inviter-name messages-initialized?] :as chat}
+  [{:keys [group-chat chat-id name pending-invite-inviter-name messages-initialized?] :as chat}
    modal?]
-  (letsubs [messages           [:chats/current-chat-messages-stream]
+  (letsubs [contact            [:contacts/contact-by-identity chat-id]
+            messages           [:chats/current-chat-messages-stream]
             current-public-key [:account/public-key]]
     {:component-did-mount
      (fn [args]
@@ -218,6 +219,7 @@
         [input/container])
       (when show-stickers?
         [stickers/stickers-view])
+;      TODO: FIX ME  [input/contact-request])
       (when show-bottom-info?
         [bottom-info/bottom-info-view])
       (when show-message-options?

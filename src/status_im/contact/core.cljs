@@ -63,12 +63,18 @@
             #(when-not pending?
                (contact-code/listen-to-chat % public-key))))
 
+(fx/defn build-contact-request
+  [{:keys [db] :as cofx} {:keys [public-key pending? dapp?] :as contact} message]
+  (if pending?
+    (message.contact/map->ContactRequestConfirmed (own-info db))
+    (message.contact/map->ContactRequest (assoc (own-info db)
+                                                :message message))))
+
 (fx/defn send-contact-request
-  [{:keys [db] :as cofx} {:keys [public-key pending? dapp?] :as contact}]
+  [cofx {:keys [public-key dapp?] :as contact} message]
   (when-not dapp?
-    (if pending?
-      (protocol/send (message.contact/map->ContactRequestConfirmed (own-info db)) public-key cofx)
-      (protocol/send (message.contact/map->ContactRequest (own-info db)) public-key cofx))))
+    (let [contact-request (build-contact-request cofx contact message)]
+      (protocol/send contact-request public-key cofx))))
 
 (fx/defn add-contact
   "Add a contact and set pending to false"
@@ -80,7 +86,7 @@
       (fx/merge cofx
                 {:db (assoc-in db [:contacts/new-identity] "")}
                 (upsert-contact contact)
-                (send-contact-request contact)))))
+                (send-contact-request contact nil)))))
 
 (fx/defn add-contacts-filter [{:keys [db]} public-key action]
   (when (not= (get-in db [:account/account :public-key]) public-key)
@@ -221,7 +227,7 @@
 (defn handle-contact-update
   [public-key
    timestamp
-   {:keys [name profile-image address fcm-token device-info] :as m}
+   {:keys [name profile-image address fcm-token message device-info raw-payload] :as m}
    {{:contacts/keys [contacts] :as db} :db :as cofx}]
   ;; We need to convert to timestamp ms as before we were using now in ms to
   ;; set last updated
@@ -254,9 +260,19 @@
                                 ;;NOTE (yenda) in case of concurrent contact request
                                :pending?     (get contact :pending? true)}
                                fcm-token (assoc :fcm-token fcm-token))]
-        (upsert-contact cofx contact-props)))))
+        (upsert-contact cofx contact-props)
+        #(when (and raw-payload message)
+              (protocol/receive message public-key public-key nil
+                                (assoc % :js-obj #js {:payload raw-payload})))))))
 
-(def receive-contact-request handle-contact-update)
+(defn receive-contact-request [public-key timestamp request raw-payload cofx]
+  (println "RECEIVE CONTACT REQUEST" public-key timestamp request)
+  (handle-contact-update
+     public-key
+     timestamp
+     (assoc request :raw-payload raw-payload)
+     cofx))
+
 (def receive-contact-request-confirmation handle-contact-update)
 (def receive-contact-update handle-contact-update)
 
