@@ -62,8 +62,8 @@ class TestSignInOffline(MultipleDeviceTestCase):
         sign_in.create_user()
         sign_in.toggle_airplane_mode()
         sign_in.accept_agreements()
-        home = sign_in.sign_in()
-        home.home_button.wait_for_visibility_of_element()
-        connection_text = home.connection_status.text
+        sign_in.relogin()
+        sign_in.home_button.wait_for_visibility_of_element()
+        connection_text = sign_in.connection_status.text
         if connection_text != 'Offline':
             pytest.fail("Connection status text '%s' doesn't match expected 'Offline'" % connection_text)

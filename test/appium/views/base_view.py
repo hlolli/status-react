@@ -537,5 +537,6 @@ class BaseView(object):
         airplane_toggle = self.element_by_xpath('//*[@resource-id="android:id/switch_widget"]')
         airplane_toggle.wait_for_visibility_of_element()
         airplane_toggle.click()
-        # opening Status app
-        self.driver.start_activity(app_package='im.status.ethereum', app_activity='.MainActivity')
+        # go back to Status app
+        self.click_system_back_button()
+        self.click_system_back_button()
