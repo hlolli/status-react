@@ -28,6 +28,7 @@
                 :chat-modal
                 :show-extension-modal
                 :stickers-pack-modal
+                :tribute-learn-more
                 {:name    :wallet-send-modal-stack
                  :screens [:wallet-send-transaction-modal
                            :wallet-transaction-sent-modal

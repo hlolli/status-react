@@ -1,7 +1,11 @@
 (ns status-im.tribute-to-talk.core
   (:refer-clojure :exclude [remove])
   (:require [clojure.string :as string]
+            [status-im.i18n :as i18n]
             [status-im.accounts.update.core :as accounts.update]
+            [re-frame.core :as re-frame]
+            [status-im.utils.ethereum.core :as ethereum.core]
+            [status-im.utils.ethereum.tribute :as ethereum.tribute]
             [status-im.ui.screens.navigation :as navigation]
             [status-im.utils.fx :as fx]))
 
@@ -127,3 +131,18 @@
                              {:step :finish})}
               (accounts.update/update-settings
                (assoc account-settings :tribute-to-talk {:seen? true}) {}))))
+
+(defn check-tribute [web3 network identity]
+  (let [contract (get ethereum.tribute/contracts (ethereum.core/network->chain-keyword network))]
+    (ethereum.tribute/get-tribute web3 contract identity
+                                  #(re-frame/dispatch [:tribute-to-talk.ui/set-tribute identity %1]))))
+
+(defn status-label [[status value]]
+  (cond (= status :paid)
+        (i18n/label :t/tribute-state-paid)
+        (= status :pending)
+        (i18n/label :t/tribute-state-pending)
+        (= status :required)
+        (i18n/label :t/tribute-state-required {:snt-amount value})
+        :else nil))
+

@@ -224,8 +224,9 @@
                 :min-height 24}]
    [enabled-note]])
 
-(defn chat-sample []
-  [react/view {:style (assoc styles/learn-more-section :margin-top 24)}
+(defn pay-to-chat-message [snt-amount fiat-amount fiat-currency
+                           personalized-message style public-key]
+  [react/view {:style style}
    [react/view {:style {:flex-direction :row
                         :align-items :center}}
     [react/view {:style {:background-color colors/white
@@ -236,47 +237,63 @@
                          :line-height 22
                          :margin-left 4}}
      (i18n/label :t/tribute-to-talk)]]
-   [react/view {:style styles/chat-sample-bubble}
-    [react/text {:style {:font-size 15 :color colors/black}}
-     (i18n/label :t/tribute-to-talk-sample-text)]]
+   (when-not (string/blank? personalized-message)
+     [react/view {:style styles/chat-sample-bubble}
+      [react/text {:style {:font-size 15 :color colors/black}}
+       (i18n/label :t/tribute-to-talk-sample-text)]])
    [react/view {:style (assoc styles/chat-sample-bubble :width 141)}
     ;;TODO replace hardcoded values
-    [react/text {:style {:font-size 22 :color colors/black}} "1000"
+    [react/text {:style {:font-size 22 :color colors/black}} snt-amount
      [react/text {:style {:font-size 22 :color colors/gray}} " SNT"]]
     [react/text {:style {:font-size 12 :color colors/black}}
-     "~3.48"
-     [react/text {:style {:font-size 12 :color colors/gray}} " USD"]]
+     (str "~" fiat-amount)
+     [react/text {:style {:font-size 12 :color colors/gray}} (str " " fiat-currency)]]
     [react/view {:style styles/pay-to-chat-container}
-     [react/text {:style styles/pay-to-chat-text}
+     [react/text (cond-> {:style styles/pay-to-chat-text}
+                   public-key
+                   (assoc :on-press #(re-frame/dispatch [])))
       (i18n/label :t/pay-to-chat)]]]])
 
-(defn learn-more []
-  [react/scroll-view {:content-container-style styles/learn-more-container}
-   [react/image {:source (:tribute-to-talk resources/ui)
-                 :style styles/learn-more-image}]
-   [react/text {:style styles/learn-more-title-text}
-    (i18n/label :t/tribute-to-talk)]
-   [react/view {:style styles/learn-more-text-container-1}
-    [react/text {:style styles/learn-more-text}
-     (i18n/label :t/tribute-to-talk-learn-more-1)]]
-   [separator]
-   [chat-sample]
-   [react/view {:style styles/learn-more-text-container-2}
-    [react/text {:style styles/learn-more-text}
-     (i18n/label :t/tribute-to-talk-learn-more-2)]]
-   [react/view {:style (assoc styles/learn-more-section
-                              :flex-direction     :row
-                              :align-item         :flex-stretch
-                              :padding-horizontal 16
-                              :padding-vertical   12)}
-    [react/view {:style (styles/icon-view colors/blue-light)}
-     [icons/icon :main-icons/add-contact {:color colors/blue}]]
-    [react/view {:style {:margin-left 16 :justify-content :center}}
-     [react/text {:style (assoc styles/learn-more-text :color colors/blue)}
-      (i18n/label :t/add-to-contacts)]]]
-   [react/view {:style styles/learn-more-text-container-2}
-    [react/text {:style styles/learn-more-text}
-     (i18n/label :t/tribute-to-talk-learn-more-3)]]])
+(defn learn-more [owner?]
+  [react/view
+   (when-not owner?
+     [toolbar/toolbar nil toolbar/default-nav-close
+      [react/view
+       [react/text {:style styles/tribute-to-talk}
+        (i18n/label :t/tribute-to-talk)]
+       [react/text {:style styles/step-n}
+        (i18n/label :t/learn-more)]]])
+   [react/scroll-view {:content-container-style styles/learn-more-container}
+    [react/image {:source (:tribute-to-talk resources/ui)
+                  :style styles/learn-more-image}]
+    [react/text {:style styles/learn-more-title-text}
+     (i18n/label :t/tribute-to-talk)]
+    [react/view {:style styles/learn-more-text-container-1}
+     [react/text {:style styles/learn-more-text}
+      (i18n/label (if owner? :t/tribute-to-talk-learn-more-1
+                      :t/tribute-to-talk-paywall-learn-more-1))]]
+    [separator]
+    [pay-to-chat-message 1000 3.48 (i18n/label :t/usd-currency)
+     (i18n/label :t/tribute-to-talk-sample-text)  (assoc styles/learn-more-section :margin-top 24)
+     nil]
+    [react/view {:style styles/learn-more-text-container-2}
+     [react/text {:style styles/learn-more-text}
+      (i18n/label (if owner? :t/tribute-to-talk-learn-more-2
+                      :t/tribute-to-talk-paywall-learn-more-2))]]
+    [react/view {:style (assoc styles/learn-more-section
+                               :flex-direction     :row
+                               :align-item         :flex-stretch
+                               :padding-horizontal 16
+                               :padding-vertical   12)}
+     [react/view {:style (styles/icon-view colors/blue-light)}
+      [icons/icon :main-icons/add-contact {:color colors/blue}]]
+     [react/view {:style {:margin-left 16 :justify-content :center}}
+      [react/text {:style (assoc styles/learn-more-text :color colors/blue)}
+       (i18n/label (if owner? :t/add-to-contacts :t/share-profile))]]]
+    [react/view {:style styles/learn-more-text-container-2}
+     [react/text {:style styles/learn-more-text}
+      (i18n/label (if owner? :t/tribute-to-talk-learn-more-3
+                      :t/tribute-to-talk-paywall-learn-more-3))]]]])
 
 (defview tribute-to-talk []
   (letsubs [current-account           [:account/account]
@@ -308,7 +325,7 @@
         :intro                [intro]
         :set-snt-amount       [set-snt-amount snt-amount]
         :edit                 [edit snt-amount message fiat-value]
-        :learn-more           [learn-more]
+        :learn-more           [learn-more step]
         :personalized-message [personalized-message message]
         :finish               [finish snt-amount])
 

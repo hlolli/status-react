@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [status-im.contact.db :as contact.db]
             [status-im.i18n :as i18n]
+            [status-im.tribute-to-talk.core :as tribute-to-talk]
             [status-im.ui.components.list.views :as list]
             [status-im.ui.components.react :as react]
             [status-im.ui.components.status-bar.view :as status-bar]
@@ -16,7 +17,7 @@
    toolbar/default-nav-back
    [toolbar/content-title ""]])
 
-(defn actions [{:keys [pending? public-key]}]
+(defn actions [{:keys [pending? public-key tribute]}]
   (concat (if (or (nil? pending?) pending?)
             [{:label               (i18n/label :t/add-to-contacts)
               :icon                :main-icons/add-contact
@@ -26,10 +27,12 @@
               :icon                :main-icons/in-contacts
               :disabled?           true
               :accessibility-label :in-contacts-button}])
-          [{:label               (i18n/label :t/send-message)
-            :icon                :main-icons/message
-            :action              #(re-frame/dispatch [:contact.ui/send-message-pressed {:public-key public-key}])
-            :accessibility-label :start-conversation-button}
+          [(cond-> {:label               (i18n/label :t/send-message)
+                    :icon                :main-icons/message
+                    :action              #(re-frame/dispatch [:contact.ui/send-message-pressed {:public-key public-key}])
+                    :accessibility-label :start-conversation-button}
+             tribute
+             (assoc :subtext (tribute-to-talk/status-label tribute)))
            {:label               (i18n/label :t/send-transaction)
             :icon                :main-icons/send
             :action              #(re-frame/dispatch [:profile/send-transaction public-key])
@@ -78,8 +81,10 @@
 
 (defview profile []
   (letsubs [identity        [:contacts/current-contact-identity]
-            maybe-contact   [:contacts/current-contact]]
-    (let [contact (or maybe-contact (contact.db/public-key->new-contact identity))]
+            maybe-contact   [:contacts/current-contact]
+            tribute         [:tribute-to-talk/get-tribute identity]]
+    (let [contact (assoc (or maybe-contact (contact.db/public-key->new-contact identity))
+                         :tribute tribute)]
       [react/view profile.components.styles/profile
        [status-bar/status-bar]
        [profile-contact-toolbar]
@@ -93,6 +98,7 @@
          {:container-style        styles/action-container
           :action-style           styles/action
           :action-label-style     styles/action-label
+          :action-subtext-style   styles/action-subtext
           :action-separator-style styles/action-separator
           :icon-opts              styles/action-icon-opts}]
         [react/view {:style {:height 16}}]

@@ -19,7 +19,7 @@
                    (gfycat/generate-gfy chat-id))))
 
 (defn enrich-active-chat
-  [contacts {:keys [chat-id] :as chat} current-public-key]
+  [contacts tributes {:keys [chat-id] :as chat} current-public-key]
   (if-let [contact (get contacts chat-id)]
     (-> chat
         (assoc :contact contact
@@ -30,19 +30,22 @@
     (let [pending-invite-inviter-name
           (group-chats.db/get-pending-invite-inviter-name contacts
                                                           chat
-                                                          current-public-key)]
+                                                          current-public-key)
+          tribute (tributes chat-id)]
       (cond-> chat
         pending-invite-inviter-name
         (assoc :pending-invite-inviter-name pending-invite-inviter-name)
+        tribute
+        (assoc :tribute tribute)
         :always
         (assoc :chat-name
                (chat-name chat nil))))))
 
 (defn active-chats
-  [contacts chats {:keys [public-key]}]
+  [contacts tributes chats {:keys [public-key]}]
   (reduce (fn [acc [chat-id {:keys [is-active] :as chat}]]
             (if is-active
-              (assoc acc chat-id (enrich-active-chat contacts chat public-key))
+              (assoc acc chat-id (enrich-active-chat contacts tributes chat public-key))
               acc))
           {}
           chats))

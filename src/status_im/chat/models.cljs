@@ -6,6 +6,7 @@
             [status-im.data-store.user-statuses :as user-statuses-store]
             [status-im.contact-code.core :as contact-code]
             [status-im.i18n :as i18n]
+            [status-im.tribute-to-talk.core :as tribute-to-talk]
             [status-im.transport.chat.core :as transport.chat]
             [status-im.transport.utils :as transport.utils]
             [status-im.transport.message.protocol :as protocol]
@@ -221,6 +222,14 @@
                 (when platform/desktop?
                   (update-dock-badge-label))))))
 
+(fx/defn check-tribute
+  [{:keys [db]} chat-id]
+  (let [network (get-in db [:account/account :networks (:network db)])]
+    (when (and (not (get-in db [:chats chat-id :group-chat]))
+               (not ((:contacts/contacts db) chat-id)))
+      (tribute-to-talk/check-tribute (:web3 db) network chat-id))
+    {:db db}))
+
 (fx/defn preload-chat-data
   "Takes chat-id and coeffects map, returns effects necessary when navigating to chat"
   [{:keys [db] :as cofx} chat-id]
@@ -229,6 +238,7 @@
               {:db (-> (assoc db :current-chat-id chat-id)
                        (set-chat-ui-props {:validation-messages nil}))}
               (contact-code/listen-to-chat chat-id)
+              (check-tribute chat-id)
               (mark-messages-seen chat-id))))
 
 (fx/defn navigate-to-chat

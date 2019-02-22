@@ -37,7 +37,7 @@
              :sync-state                         :done
              :app-state                          "active"
              :wallet.transactions                constants/default-wallet-transactions
-             :wallet-selected-asset              {}
+             ;:wallet-selected-asset              {}
              :wallet/all-tokens                  {}
              :prices                             {}
              :peers-count                        0
@@ -66,6 +66,7 @@
              :registry                           {}
              :stickers/packs-owned               #{}
              :stickers/packs-pendning            #{}
+             :tribute-to-talk/tributes           {}
              :hardwallet                         {:nfc-supported? false
                                                   :nfc-enabled?   false
                                                   :pin            {:original     []
@@ -204,6 +205,7 @@
 (spec/def :stickers/packs-installed (spec/nilable map?))
 (spec/def :stickers/selected-pack (spec/nilable any?))
 (spec/def :stickers/recent (spec/nilable vector?))
+(spec/def :tribute-to-talk/tributes map?)
 
 (spec/def ::db (spec/keys :opt [:contacts/contacts
                                 :contacts/dapps
@@ -272,6 +274,7 @@
                                 :ui/search
                                 :ui/chat
                                 :chats/loading?
+                                :tribute-to-talk/tributes
                                 :stickers/packs
                                 :stickers/packs-installed
                                 :stickers/selected-pack
@@ -340,7 +343,7 @@
                                    :discoveries/request-discoveries-timer
                                    :wallet/wallet
                                    :wallet/wallet.transactions
-                                   :wallet/wallet-selected-asset
+                                   ;:wallet/wallet-selected-asset
                                    :prices/prices
                                    :prices/prices-loading?
                                    :notifications/notifications

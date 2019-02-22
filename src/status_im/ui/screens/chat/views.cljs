@@ -4,6 +4,7 @@
             [status-im.contact.core :as models.contact]
             [status-im.group-chats.db :as group-chats.db]
             [status-im.i18n :as i18n]
+            [status-im.ui.screens.chat.photos :as photos]
             [status-im.ui.components.animation :as animation]
             [status-im.ui.components.button.view :as buttons]
             [status-im.ui.components.chat-icon.screen :as chat-icon.screen]
@@ -25,6 +26,7 @@
             [status-im.ui.screens.chat.stickers.views :as stickers]
             [status-im.ui.screens.chat.styles.main :as style]
             [status-im.ui.screens.chat.toolbar-content :as toolbar-content]
+            [status-im.ui.screens.profile.tribute-to-talk.views :as tribute-to-talk]
             [status-im.utils.platform :as platform])
   (:require-macros [status-im.utils.views :refer [defview letsubs]]))
 
@@ -114,13 +116,38 @@
     (i18n/label :t/empty-chat-description)]])
 
 (defn empty-chat-container-one-to-one
-  [contact-name]
-  [react/view style/empty-chat-container
-   [vector-icons/icon :tiny-icons/tiny-lock]
-   [react/text {:style style/empty-chat-text}
-    [react/text style/empty-chat-container-one-to-one
-     (i18n/label :t/empty-chat-description-one-to-one)]
-    [react/text {:style style/empty-chat-text-name} contact-name]]])
+  [chat-id name tribute photo-path]
+  [react/view
+   [react/view (assoc (dissoc style/empty-chat-container :flex)
+                      :justify-content :flex-end)
+    (if tribute
+      [react/view {:style {:align-items :center :justify-content :flex-end}}
+       [photos/member-photo chat-id 120]
+       [react/text {:style (assoc style/empty-chat-text :margin-top 24)}
+        (i18n/label :t/tribute-required-by-account {:account-name name})
+        [react/text {:style {:color colors/blue}
+                     :on-press #(re-frame/dispatch [:navigate-to :tribute-learn-more])}
+         (str " " (i18n/label :learn-more))]]]
+      [react/view [vector-icons/icon :tiny-icons/tiny-lock]
+       [react/text {:style style/empty-chat-text}
+        [react/text style/empty-chat-container-one-to-one
+         (i18n/label :t/empty-chat-description-one-to-one)]
+        [react/text {:style style/empty-chat-text-name} name]]])]
+   (when tribute
+     [react/view {:style {:align-items :flex-start
+                          :margin-top 32
+                          :margin-left 8}}
+      ;; TODO Fiat value still hardcoded
+      [tribute-to-talk/pay-to-chat-message (:value tribute) "5.23" "USD" ""
+       {} chat-id]
+      [react/view {:style style/are-you-friends-bubble}
+       [react/text {:style (assoc style/are-you-friends-text :font-weight "500")}
+        (i18n/label :t/tribute-to-talk-are-you-friends)]
+       [react/text {:style style/are-you-friends-text}
+        (i18n/label :t/tribute-to-talk-ask-to-be-added)]
+       [react/text {:style style/share-my-profile
+                    :on-press #(re-frame/dispatch [:profile/share-profile-link chat-id])}
+        (i18n/label :t/share-my-profile)]]])])
 
 (defn join-chat-button [chat-id]
   [buttons/secondary-button {:style style/join-button
@@ -151,9 +178,12 @@
      [decline-chat chat-id]]]])
 
 (defview messages-view
-  [{:keys [group-chat name pending-invite-inviter-name messages-initialized?] :as chat}
+  [{:keys [group-chat name chat-id
+           pending-invite-inviter-name messages-initialized?
+           tribute] :as chat}
    modal?]
   (letsubs [messages           [:chats/current-chat-messages-stream]
+            photo-path         [:chats/photo-path chat-id]
             current-public-key [:account/public-key]]
     {:component-did-mount
      (fn [args]
@@ -170,7 +200,7 @@
            messages-initialized?)
       (if group-chat
         [empty-chat-container]
-        [empty-chat-container-one-to-one name])
+        [empty-chat-container-one-to-one chat-id name tribute photo-path])
 
       :else
       [list/flat-list {:data                      messages
@@ -190,8 +220,9 @@
     [messages-view chat modal?]))
 
 (defn show-input-container? [my-public-key current-chat]
-  (or (not (models.chat/group-chat? current-chat))
-      (group-chats.db/joined? my-public-key current-chat)))
+  (and (or (not (:tribute current-chat)) (= (:status (:tribute current-chat)) :paid))
+       (or (not (models.chat/group-chat? current-chat))
+           (group-chats.db/joined? my-public-key current-chat))))
 
 (defview chat-root [modal?]
   (letsubs [{:keys [public?] :as current-chat} [:chats/current-chat]

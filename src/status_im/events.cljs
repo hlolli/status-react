@@ -758,9 +758,12 @@
 
 (handlers/register-handler-fx
  :chat.ui/show-profile
- (fn [cofx [_ identity]]
-   (navigation/navigate-to-cofx
-    (assoc-in cofx [:db :contacts/identity] identity) :profile nil)))
+ (fn [{:keys [db] :as cofx} [_ identity]]
+   (let [network (get-in db [:account/account :networks (:network db)])]
+     (when-not ((:contacts/contacts db) identity)
+       (tribute-to-talk/check-tribute (:web3 db) network identity))
+     (navigation/navigate-to-cofx
+      (assoc-in cofx [:db :contacts/identity] identity) :profile nil))))
 
 (handlers/register-handler-fx
  :chat.ui/set-chat-input-text
@@ -1776,3 +1779,23 @@
  :tribute-to-talk.ui/remove-pressed
  (fn [cofx _]
    (tribute-to-talk/remove cofx)))
+
+(handlers/register-handler-fx
+ :tribute-to-talk.ui/set-tribute
+ (fn [{:keys [db] :as cofx}  [_ identity value]]
+   (log/warn "event set-tribute" identity value)
+   {:db (update-in db [:tribute-to-talk/tributes identity]
+                   (fn [{:keys [status]}]
+                     {:value value
+                      :status (or status :required)}))}))
+
+(handlers/register-handler-fx
+ :tribute-to-talk.ui/pay-tribute
+ (fn [{:keys [db] :as cofx}  [_ identity status]]
+   {:db (assoc-in db [:contacts/contacts identity :tribute :status] status)}))
+
+(handlers/register-handler-fx
+ :tribute-to-talk.ui/check-tribute
+ (fn [{:keys [db] :as cofx}  [_ identity]]
+   (let [network (get-in db [:account/account :networks (:network db)])]
+     (tribute-to-talk/check-tribute (:web3 db) network identity))))
