@@ -24,6 +24,9 @@
 
 (defview basic-text-input [{:keys [chat set-container-width-fn height single-line-input?]}]
   (letsubs [contact-code         [:contact-codes/contact-code (:chat-id chat)]
+            {:keys [dev-mode?
+                    settings]}   [:account/account]
+
             cooldown-enabled?    [:chats/cooldown-enabled?]]
     [react/text-input
      (merge
@@ -50,7 +53,12 @@
        :auto-capitalize        :sentences}
       (when cooldown-enabled?
         {:placeholder (i18n/label :cooldown/text-input-disabled)})
-      (when-not contact-code
+      (when (and
+             config/pfs-toggle-visible?
+             (:pfs? settings)
+             dev-mode?
+             (not (:group-chat chat))
+             (not contact-code))
         {:placeholder (i18n/label :type-a-contact-request)}))]))
 
 (defview invisible-input [{:keys [set-layout-width-fn value]}]
@@ -155,6 +163,22 @@
           [commands-button]
           [send-button/send-button-view])]])))
 
+(defview contact-request-input-container []
+  (letsubs [margin               [:chats/input-margin]
+            {:keys [input-text]} [:chats/current-chat]
+            result-box           [:chats/current-chat-ui-prop :result-box]]
+    (let [single-line-input? (:singleLineInput result-box)]
+      [react/view {:style     (style/root margin)
+                   :on-layout #(let [h (-> (.-nativeEvent %)
+                                           (.-layout)
+                                           (.-height))]
+                                 (when (> h 0)
+                                   (re-frame/dispatch [:chat.ui/set-chat-ui-props {:input-height h}])))}
+       [react/view {:style style/input-container}
+        [input-view {:single-line-input? single-line-input?}]
+        (when-not (string/blank? input-text)
+          [send-button/send-button-view])]])))
+
 (defn container []
   [react/view
    [parameter-box/parameter-box-view]
@@ -164,4 +188,4 @@
 
 (defn contact-request []
   [react/view
-   [input-container]])
+   [contact-request-input-container]])

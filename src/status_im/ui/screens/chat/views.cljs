@@ -153,8 +153,7 @@
 (defview messages-view
   [{:keys [group-chat chat-id name pending-invite-inviter-name messages-initialized?] :as chat}
    modal?]
-  (letsubs [contact            [:contacts/contact-by-identity chat-id]
-            messages           [:chats/current-chat-messages-stream]
+  (letsubs [messages           [:chats/current-chat-messages-stream]
             current-public-key [:account/public-key]]
     {:component-did-mount
      (fn [args]
@@ -195,7 +194,11 @@
       (group-chats.db/joined? my-public-key current-chat)))
 
 (defview chat-root [modal?]
-  (letsubs [{:keys [public?] :as current-chat} [:chats/current-chat]
+  (letsubs [{:keys [public?
+                    group-chat
+                    chat-id] :as current-chat} [:chats/current-chat]
+            contact-code                       [:contact-codes/current-contact-code]
+
             my-public-key                      [:account/public-key]
             show-bottom-info?                  [:chats/current-chat-ui-prop :show-bottom-info?]
             show-message-options?              [:chats/current-chat-ui-prop :show-message-options?]
@@ -216,10 +219,16 @@
          [messages-view-wrapper modal?]]
         [react/view style/message-view-preview])
       (when (show-input-container? my-public-key current-chat)
-        [input/container])
-      (when show-stickers?
+        (if
+         (and
+          (not group-chat)
+          (not contact-code))
+          [input/contact-request]
+          [input/container]))
+      (when (and (or group-chat
+                     contact-code)
+                 show-stickers?)
         [stickers/stickers-view])
-;      TODO: FIX ME  [input/contact-request])
       (when show-bottom-info?
         [bottom-info/bottom-info-view])
       (when show-message-options?

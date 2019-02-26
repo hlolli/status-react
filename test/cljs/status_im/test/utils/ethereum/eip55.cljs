@@ -11,6 +11,7 @@
   (is (= true (eip55/valid-address-checksum? "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359")))
   (is (= true (eip55/valid-address-checksum? "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB")))
   (is (= true (eip55/valid-address-checksum? "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb")))
+  (is (= true (eip55/valid-address-checksum? "0xd0ec8a940fe9712c1521c2190f41604ecaa7ec9e")))
   (is (= false (eip55/valid-address-checksum? "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9adB")))
   (is (= false (eip55/valid-address-checksum? "0x8617e340b3d01fa5f11f306f4090fd50e238070d")))
   (is (= false (eip55/valid-address-checksum? "0xDE709F2102306220921060314715629080E2fB77"))))

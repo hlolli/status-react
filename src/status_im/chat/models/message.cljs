@@ -11,7 +11,7 @@
             [status-im.utils.ethereum.core :as ethereum]
             [status-im.utils.datetime :as time]
             [status-im.transport.message.group-chat :as message.group-chat]
-            [status-im.contact.core :as contact]
+            [status-im.contact.request :as contact.request]
             [status-im.chat.models :as chat-model]
             [status-im.chat.models.loading :as chat-loading]
             [status-im.chat.models.message-content :as message-content]
@@ -40,11 +40,6 @@
      {:chat-id              chat-id
       :membership-updates   (:membership-updates chat)
       :message              message})))
-
-(defn- wrap-contact-request
-  "Wrap a message in a contact request"
-  [cofx chat-id message]
-  (contact/build-contact-request cofx chat-id message))
 
 (defn- prepare-message
   [{:keys [content content-type] :as message} chat-id current-chat?]
@@ -357,18 +352,19 @@
 
 (def ^:private transport-keys [:content :content-type :message-type :clock-value :timestamp])
 
-(fx/defn upsert-and-send [{:keys [now] :as cofx} {:keys [chat-id from] :as message}]
-  (let [send-record     (protocol/map->Message (select-keys message transport-keys))
-        old-message-id  (transport.utils/old-message-id send-record)
-        wrapped-record  (cond
-                           (= (:message-type send-record) :group-user-message)
-                           (wrap-group-message cofx chat-id send-record)
+(fx/defn upsert-and-send [{:keys [now] :as cofx} {:keys [chat-id
+                                                         content-type
+                                                         from] :as message}]
+  (let [contact-request? (= constants/content-type-contact-request
+                            content-type)
+        send-record      (protocol/map->Message (select-keys message transport-keys))
+        old-message-id   (transport.utils/old-message-id send-record)
+        wrapped-record   (cond
+                          (= (:message-type send-record) :group-user-message)
+                          (wrap-group-message cofx chat-id send-record)
 
-                           (= (:message-type send-record) :user-message)
-                           (wrap-contact-request cofx chat-id send-record)
-
-                           :else
-                           send-record)
+                          :else
+                          send-record)
         raw-payload     (transport.utils/from-utf8 (transit/serialize wrapped-record))
         message-id      (transport.utils/message-id from raw-payload)
         message-with-id (assoc message
@@ -387,7 +383,9 @@
                             :message          message-with-id
                             :current-chat?    true})
               (add-own-status chat-id message-id :sending)
-              (send chat-id message-id wrapped-record))))
+              #(if contact-request?
+                 {:dispatch [:contact/send-contact-request-message chat-id message-id send-record]}
+                 (send % chat-id message-id wrapped-record)))))
 
 (fx/defn send-push-notification [cofx chat-id message-id fcm-tokens status]
   (log/debug "#6772 - send-push-notification" message-id fcm-tokens)

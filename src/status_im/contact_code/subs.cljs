@@ -11,3 +11,10 @@
  :<- [:contact-codes/contact-codes]
  (fn [contact-codes [_ public-key]]
    (get contact-codes public-key)))
+
+(re-frame/reg-sub
+ :contact-codes/current-contact-code
+ :<- [:chats/current-chat]
+ :<- [:contact-codes/contact-codes]
+ (fn [[{:keys [chat-id]} contact-codes]]
+   (get contact-codes chat-id)))

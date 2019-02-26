@@ -5,6 +5,7 @@
   (:require
    [taoensso.timbre :as log]
    [clojure.string :as string]
+   [re-frame.core :as re-frame]
    [status-im.utils.fx :as fx]
    [status-im.native-module.core :as native-module]
    [status-im.transport.shh :as shh]
@@ -79,11 +80,11 @@
       (let [message {:chat chat-id
                      :sig  current-public-key
                      :payload ""}]
-        (shh/send-public-message!
-         web3
-         message
-         [:contact-code.callback/contact-code-published]
-         :contact-code.callback/contact-code-publishing-failed)))))
+        #_(shh/send-public-message!
+           web3
+           message
+           [:contact-code.callback/contact-code-published]
+           :contact-code.callback/contact-code-publishing-failed)))))
 
 (fx/defn published [{:keys [now db] :as cofx}]
   (let [new-account (assoc (:account/account db)
@@ -111,11 +112,11 @@
   (let [{:keys [error code]} (parse-response raw-response)]
     (cond
 
-     error
-     (log/error "failed to load contact-code" chat-id error)
+      error
+      (log/error "failed to load contact-code" chat-id error)
 
-     (not (string/blank? code))
-     (re-frame/dispatch [:contact-code.callback/contact-code-loaded chat-id code]))))
+      (not (string/blank? code))
+      (re-frame/dispatch [:contact-code.callback/contact-code-loaded chat-id code]))))
 
 (fx/defn handle-bundles-added [cofx {:keys [identity]}]
   (add-contact-code cofx identity true))
@@ -126,7 +127,6 @@
    (native-module/get-contact-code
     (subs chat-id 2)
     (partial handle-get-contact-code-response chat-id))))
-
 
 (fx/defn loaded [cofx chat-id contact-code]
   (add-contact-code cofx chat-id true))

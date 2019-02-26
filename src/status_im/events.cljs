@@ -1504,8 +1504,14 @@
 
 (handlers/register-handler-fx
  :transport/contact-message-sent
- (fn [cofx [_ chat-id envelope-hash]]
-   (transport.message/set-contact-message-envelope-hash cofx chat-id envelope-hash)))
+ (fn [cofx [_ chat-id message-id envelope-hash]]
+   (transport.message/set-message-envelope-hash
+    cofx
+    chat-id
+    message-id
+    :contact-message
+    envelope-hash
+    1)))
 
 ;; contact module
 
@@ -1515,7 +1521,7 @@
  (fn [cofx [_ public-key]]
    (if config/partitioned-topic-enabled?
      (contact/add-contacts-filter cofx public-key :add-contact)
-     (contact/add-contact cofx public-key))))
+     (contact/add-contact cofx public-key nil))))
 
 (handlers/register-handler-fx
  :contact.ui/block-contact-pressed
@@ -1544,6 +1550,15 @@
  [(re-frame/inject-cofx :random-id-generator)]
  (fn [cofx [_ _ contact-identity]]
    (contact/handle-qr-code cofx contact-identity)))
+
+(handlers/register-handler-fx
+ :contact/send-contact-request-message
+ [(re-frame/inject-cofx :random-id-generator)]
+ (fn [cofx [_ contact-identity message-id message]]
+   (contact/add-contact
+    (assoc cofx :message-id message-id)
+    contact-identity
+    message)))
 
 (handlers/register-handler-fx
  :contact/filters-added
