@@ -12,7 +12,6 @@
      :compiler         {:output-to     "target/ios/app.js"
                         :main          "env.ios.main"
                         :output-dir    "target/ios"
-                        :closure-defines    {"goog.DEBUG" false}
                         :npm-deps false
                         :optimizations :none}
      :warning-handlers '[status-im.utils.build/warning-handler]}
@@ -21,7 +20,6 @@
      :compiler         {:output-to     "target/android/app.js"
                         :main          "env.android.main"
                         :output-dir    "target/android"
-                        :closure-defines    {"goog.DEBUG" false}
                         :npm-deps false
                         :optimizations :none}
      :warning-handlers '[status-im.utils.build/warning-handler]}
@@ -30,7 +28,6 @@
      :compiler         {:output-to     "target/desktop/app.js"
                         :main          "env.desktop.main"
                         :output-dir    "target/desktop"
-                        :closure-defines    {"goog.DEBUG" false}
                         :npm-deps false
                         :optimizations :none}
      :warning-handlers '[status-im.utils.build/warning-handler]}}
@@ -80,7 +77,6 @@
                     :output-to     "target/test/test.js"
                     :output-dir    "target/test"
                     :optimizations :none
-                    :closure-defines    {"goog.DEBUG" false}
                     :preamble      ["js/hook-require.js"]
                     :target        :nodejs}}
     :protocol
@@ -89,14 +85,12 @@
                     :output-to     "target/test/test.js"
                     :output-dir    "target/test"
                     :optimizations :none
-                    :closure-defines    {"goog.DEBUG" false}
                     :target        :nodejs}}
     :env-dev-utils
     {:source-paths ["env/dev/env/utils.cljs" "test/env/dev"]
      :compiler     {:main          "env.test.runner"
                     :output-to     "target/test/test.js"
                     :output-dir    "target/test"
-                    :closure-defines    {"goog.DEBUG" false}
                     :optimizations :none
                     :target        :nodejs}}}})
 
