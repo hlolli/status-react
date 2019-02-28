@@ -46,18 +46,21 @@
                                         {:source-paths ["components/src" "react-native/src/cljsjs" "react-native/src/mobile" "src"]
                                          :compiler     {:output-to     "target/ios/app.js"
                                                         :main          "env.ios.main"
+                                                        :closure-defines    {"goog.DEBUG" false}
                                                         :output-dir    "target/ios"
                                                         :optimizations :none}}
                                         :android
                                         {:source-paths     ["components/src" "react-native/src/cljsjs" "react-native/src/mobile" "src"]
                                          :compiler         {:output-to     "target/android/app.js"
                                                             :main          "env.android.main"
+                                                            :closure-defines    {"goog.DEBUG" false}
                                                             :output-dir    "target/android"
                                                             :optimizations :none}
                                          :warning-handlers [status-im.utils.build/warning-handler]}
                                         :desktop
                                         {:source-paths ["components/src" "react-native/src/cljsjs" "react-native/src/desktop" "src"]
                                          :compiler     {:output-to     "target/desktop/app.js"
+                                                        :closure-defines    {"goog.DEBUG" false}
                                                         :main          "env.desktop.main"
                                                         :output-dir    "target/desktop"
                                                         :optimizations :none}}}}
@@ -79,6 +82,7 @@
                                                         :output-to     "target/test/test.js"
                                                         :output-dir    "target/test"
                                                         :optimizations :none
+                                                        :closure-defines    {"goog.DEBUG" false}
                                                         :preamble      ["js/hook-require.js"]
                                                         :target        :nodejs}}
                                         {:id           "protocol"
@@ -87,6 +91,7 @@
                                                         :output-to        "target/test/test.js"
                                                         :output-dir       "target/test"
                                                         :optimizations    :none
+                                                        :closure-defines    {"goog.DEBUG" false}
                                                         :preamble         ["js/hook-require.js"]
                                                         :target           :nodejs}}
                                         {:id           "env-dev-utils"
@@ -94,6 +99,7 @@
                                          :compiler     {:main          env.test.runner
                                                         :output-to     "target/test/test.js"
                                                         :output-dir    "target/test"
+                                                        :closure-defines    {"goog.DEBUG" false}
                                                         :optimizations :none
                                                         :target        :nodejs}}]}}
              :prod     {:cljsbuild {:builds
