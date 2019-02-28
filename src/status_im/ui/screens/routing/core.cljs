@@ -16,10 +16,16 @@
    [status-im.ui.components.bottom-bar.core :as bottom-bar]
    [status-im.ui.components.status-bar.view :as status-bar]))
 
+(defonce views-ids
+  (reagent.core/atom {:will-blur  nil
+                      :will-focus nil}))
+
 (defn navigation-events [view-id modal?]
   [:> navigation/navigation-events
    {:on-will-focus
     (fn []
+      (when (not= (:will-focus @views-ids) view-id)
+        (swap! views-ids assoc :will-focus view-id))
       (log/debug :on-will-focus view-id)
       (when modal?
         (status-bar/set-status-bar view-id))
@@ -122,6 +128,10 @@
        (map build-screen)
        (into {})))
 
+(defn wrap-boba
+  [n]
+  [bottom-bar/bottom-bar n @views-ids])
+
 (defn get-main-component [view-id]
   (log/debug :component view-id)
   (switch-navigator
@@ -135,5 +145,5 @@
                           (into {}))
                      {:initialRouteName :chat-stack
                       :tabBarComponent  (reagent.core/reactify-component
-                                         bottom-bar/bottom-bar)})}]])
+                                         wrap-boba)})}]])
    {:initialRouteName :intro-login-stack}))

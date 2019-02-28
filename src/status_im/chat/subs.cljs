@@ -81,7 +81,7 @@
      platform/ios? (- kb-height (if (> kb-height 0)
                                   tabs-styles/tabs-height
                                   0))
-     :default 0)))
+     :default -12)))
 
 (re-frame/reg-sub
  :chats/active-chats

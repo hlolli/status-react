@@ -80,15 +80,25 @@
         :active?             (= current-view-id nav-stack)
         :nav-stack           nav-stack}])]])
 
-(defn tabs-animation-wrapper [visible? keyboard-shown? tab]
-  [react/animated-view
-   {:style (tabs.styles/animated-container visible? keyboard-shown?)}
-   [react/safe-area-view [tabs tab]]])
+(defn tabs-animation-wrapper [visible? keyboard-shown? vs tab]
+  (reagent.core/create-class
+   {:component-will-update
+    (fn [this new-params]
+      (let [old-vs (get (.-argv (.-props this)) 3)
+            new-vs (get new-params 3)]
+        (if (= (:will-focus new-vs) :chat)
+          (animate visible? 150 0.692308)
+          (animate visible? 150 1))))
+    :reagent-render
+    (fn [visible? keyboard-shown? vs tab]
+      [react/animated-view
+       {:style (tabs.styles/animated-container visible? keyboard-shown?)}
+       [react/safe-area-view [tabs tab]]])}))
 
 (def disappearance-duration 150)
 (def appearance-duration 100)
 
-(defn bottom-bar [_]
+(defn bottom-bar [_ vs]
   (let [keyboard-shown? (reagent/atom false)
         visible?        (animation/create-value 1)
         listeners       (atom [])]
@@ -114,7 +124,7 @@
             (when listener
               (.remove listener)))))
       :reagent-render
-      (fn [args]
+      (fn [args vs]
         (let [idx (.. (:navigation args)
                       -state
                       -index)
@@ -125,4 +135,4 @@
                     :chat-stack)]
           (if platform/ios?
             [react/safe-area-view [tabs tab]]
-            [tabs-animation-wrapper visible? @keyboard-shown? tab])))})))
+            [tabs-animation-wrapper visible? @keyboard-shown? vs tab])))})))
