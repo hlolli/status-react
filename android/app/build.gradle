@@ -208,6 +208,7 @@ android {
         }
         pr {
             initWith release
+            debuggable false
             applicationIdSuffix ".pr"
             versionNameSuffix ".pr"
             matchingFallbacks = ["release"]
