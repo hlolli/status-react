@@ -27,8 +27,10 @@ in with pkgs;
     name = "env";
     env = buildEnv { name = name; paths = buildInputs; };
     buildInputs = with stdenv; [
+      bash
       clojure
       curl
+      git
       jq
       leiningen
       maven

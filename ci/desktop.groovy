@@ -5,13 +5,13 @@ packageFolder = './StatusImPackage'
 def cleanupAndDeps() {
   cmn.clean()
   sh 'cp .env.jenkins .env'
-  sh 'lein deps'
+  cmn.nix_shell('lein deps')
   cmn.installJSDeps('desktop')
 }
 
 def buildClojureScript() {
-  sh 'make prod-build-desktop'
-  sh './scripts/build-desktop.sh buildClojureScript'
+  cmn.nix_shell('make prod-build-desktop')
+  cmn.nix_shell('./scripts/build-desktop.sh buildClojureScript')
 }
 
 def uploadArtifact(filename) {
@@ -53,13 +53,13 @@ def compile() {
   if (env.QT_PATH) {
     env.PATH = "${env.QT_PATH}:${env.PATH}"
   }
-  sh './scripts/build-desktop.sh compile'
+  cmn.nix_shell('./scripts/build-desktop.sh compile')
 }
 
 def bundleWindows(type = 'nightly') {
   def pkg
 
-  sh './scripts/build-desktop.sh bundle'
+  cmn.nix_shell('./scripts/build-desktop.sh bundle')
   dir(packageFolder) {
     pkg = cmn.pkgFilename(type, 'exe')
     sh "mv ../Status-x86_64-setup.exe ${pkg}"
@@ -70,7 +70,7 @@ def bundleWindows(type = 'nightly') {
 def bundleLinux(type = 'nightly') {
   def pkg
 
-  sh './scripts/build-desktop.sh bundle'
+  cmn.nix_shell('./scripts/build-desktop.sh bundle')
   dir(packageFolder) {
     pkg = cmn.pkgFilename(type, 'AppImage')
     sh "mv ../Status-x86_64.AppImage ${pkg}"
@@ -80,7 +80,7 @@ def bundleLinux(type = 'nightly') {
 
 def bundleMacOS(type = 'nightly') {
   def pkg = cmn.pkgFilename(type, 'dmg')
-  sh './scripts/build-desktop.sh bundle'
+  cmn.nix_shell('./scripts/build-desktop.sh bundle')
   dir(packageFolder) {
     withCredentials([
       string(credentialsId: 'desktop-gpg-outer-pass', variable: 'GPG_PASS_OUTER'),

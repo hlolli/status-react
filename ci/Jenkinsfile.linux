@@ -1,11 +1,11 @@
 pipeline {
   agent {
-    /* privileged mode is necessary for fuse */
     docker {
       label 'linux'
-      /* WARNING: remember to keep this up-to-date with the value in docker/linux/Makefile */
-      image 'statusteam/status-build-linux:1.1.1-8e5f6658'
+      image 'nixos/nix'
       args (
+        "-u 0:0 "+
+        "-v /tmp/Android/Sdk:/home/jenkins/.status/Android/Sdk:rw "+
         "-v /var/tmp/lein:/var/tmp/lein:rw "+
         "-v /var/tmp/npm:/var/tmp/npm:rw "+
         "-v /opt/desktop-files:/opt/desktop-files:rw"
@@ -43,8 +43,16 @@ pipeline {
     LANGUAGE = 'en_US.UTF-8'
     LC_ALL = 'en_US.UTF-8'
     NPM_CONFIG_CACHE = '/var/tmp/npm'
+    CI_ENVIRONMENT = 'jenkins'
     LEIN_HOME = '/var/tmp/lein'
-    QT_PATH = '/opt/qt'
+    NIX_CACHE_USER = 'nix-cache'
+    NIX_CACHE_HOST = 'master-01.do-ams3.ci.misc.statusim.net'
+    NIX_SSHOPTS = "-t -o StrictHostKeyChecking=no"
+    NIX_BIN_CACHE = 'https://nix-cache.status.im/'
+    NIX_BIN_CACHE_KEYS = (
+      'nix-cache.status.im-1:x/93lOfLU+duPplwMSBR+OlY4+mo+dCN7n0mr4oPwgY= '+
+      'cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY='
+    )
     STATUSIM_APPIMAGE_DIR = '/opt/desktop-files'
     VERBOSE_LEVEL = '3'
   }
