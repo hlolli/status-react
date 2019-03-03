@@ -53,7 +53,10 @@ pipeline {
     stage('Upload') {
       steps {
         sshagent(credentials: ['nix-cache-ssh']) {
-          sh "nix copy -v --to ssh://${NIX_CACHE_USER}@${NIX_CACHE_HOST} --all"
+          sh """
+            find /nix/store/ -mindepth 1 -maxdepth 1 -not -name '.links' -and -not -name '*.lock' | \
+              xargs nix-copy-closure -v --to ${NIX_CACHE_USER}@${NIX_CACHE_HOST}
+          """
         }
       }
     }
