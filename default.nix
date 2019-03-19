@@ -23,7 +23,7 @@ with pkgs;
     }.${target-os} or false;
     _stdenv = stdenvNoCC; # TODO: Try to use stdenv for Darwin
 
-    statusDesktop = callPackage ./scripts/lib/setup/nix/desktop { inherit target-os; stdenv = _stdenv; inherit nodejs; };
+statusDesktop = callPackage ./scripts/lib/setup/nix/desktop { inherit target-os; stdenv = _stdenv; inherit nodejs; };
     statusMobile = callPackage ./scripts/lib/setup/nix/mobile { inherit target-os; stdenv = _stdenv; };
     nodeInputs = import ./scripts/lib/setup/nix/global-node-packages {
       # The remaining dependencies come from Nixpkgs
@@ -35,7 +35,6 @@ with pkgs;
       python27 # for e.g. gyp
       yarn
     ] ++ (map (x: nodeInputs."${x}") (builtins.attrNames nodeInputs));
-
   in _stdenv.mkDerivation rec {
     name = "env";
     env = buildEnv { name = name; paths = buildInputs; };

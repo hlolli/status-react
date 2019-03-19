@@ -31,6 +31,7 @@ in
       python27
       yarn
       nodePkgs."realm-git+https://github.com/status-im/realm-js.git#heads/v2.20.1"
+      hostname # Used by run-app.sh
     ] ++ lib.optional targetLinux [ appimagekit linuxdeployqt patchelf ]
       ++ lib.optional (! targetWindows) qt5.full
       ++ lib.optional targetWindows windowsPlatform.buildInputs;
