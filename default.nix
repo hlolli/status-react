@@ -9,6 +9,7 @@
 
 with pkgs;
   let
+    nodejs = nodejs-10_x;
     targetDesktop = {
       "linux" = true;
       "windows" = true;
@@ -21,9 +22,10 @@ with pkgs;
       "" = true;
     }.${target-os} or false;
     _stdenv = stdenvNoCC; # TODO: Try to use stdenv for Darwin
-    statusDesktop = callPackage ./scripts/lib/setup/nix/desktop { inherit target-os; stdenv = _stdenv; };
+
+    statusDesktop = callPackage ./scripts/lib/setup/nix/desktop { inherit target-os; stdenv = _stdenv; inherit nodejs; };
     statusMobile = callPackage ./scripts/lib/setup/nix/mobile { inherit target-os; stdenv = _stdenv; };
-    nodeInputs = import ./scripts/lib/setup/nix/global-node-packages/output {
+    nodeInputs = import ./scripts/lib/setup/nix/global-node-packages {
       # The remaining dependencies come from Nixpkgs
       inherit pkgs;
       inherit nodejs;
@@ -42,10 +44,12 @@ with pkgs;
       clojure
       curl
       git
+      hostname
       jq
       leiningen
       lsof # used in scripts/start-react-native.sh
       maven
+      nodejs
       watchman
       unzip
       wget

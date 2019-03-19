@@ -213,7 +213,7 @@ watch-desktop: ##@watch Start development for Desktop
 _run-%: _ensure-in-nix-shell
 	$(eval SYSTEM := $(word 2, $(subst -, , $@)))
 	scripts/run-environment-check.sh $(SYSTEM)
-	react-native run-$(SYSTEM)
+	npx react-native run-$(SYSTEM)
 
 run-android: _run-android ##@run Run Android build
 

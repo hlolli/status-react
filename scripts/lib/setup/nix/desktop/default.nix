@@ -1,7 +1,7 @@
-{ stdenv, pkgs, target-os }:
+{ stdenv, pkgs, target-os, nodejs }:
 
 with pkgs;
-with stdenv; 
+with stdenv;
 
 let
   targetLinux = {
@@ -15,7 +15,10 @@ let
   windowsPlatform = callPackage ./windows { };
   appimagekit = callPackage ./appimagekit { };
   linuxdeployqt = callPackage ./linuxdeployqt { inherit appimagekit; };
-
+  nodePkgs = import ../global-node-packages {
+    inherit pkgs;
+    inherit nodejs;
+  };
 in
   {
     buildInputs = [
@@ -24,6 +27,10 @@ in
       file
       gnupg # Used by appimagetool
       go
+      ncurses
+      python27
+      yarn
+      nodePkgs."realm-git+https://github.com/status-im/realm-js.git#heads/v2.20.1"
     ] ++ lib.optional targetLinux [ appimagekit linuxdeployqt patchelf ]
       ++ lib.optional (! targetWindows) qt5.full
       ++ lib.optional targetWindows windowsPlatform.buildInputs;
